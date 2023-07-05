@@ -1,0 +1,12 @@
+# Air
+_tmp/
+tmp/
+
+# temporary files
+_srv/
+
+# env
+.env
+
+# scripts output
+_scripts/output/

@@ -1,0 +1,75 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: _docker/Dockerfile.server
+    volumes:
+      - ./_srv:/srv
+      - git_server:/tmp
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+      - GIT_REPOSITORIES_FULL_BASE_PATH=/srv
+      - GIT_POSTGRESQL_USERNAME=paastech
+      - GIT_POSTGRESQL_PASSWORD=paastech
+      - GIT_POSTGRESQL_DATABASE_NAME=paastech
+      - GIT_POSTGRESQL_PORT=5432
+      - GIT_POSTGRESQL_HOST=postgresql
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 125M
+
+  client:
+    build:
+      context: .
+      dockerfile: _docker/Dockerfile.client
+      args:
+        - REPOSITORY_NAME=6d309660-fd8d-45b1-95fb-c57790cb392a
+        - GIT_REMOTE_URL=ssh://git@server:2222/6d309660-fd8d-45b1-95fb-c57790cb392a
+    stdin_open: true
+    tty: true
+    depends_on:
+      - server
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 125M
+
+  postgresql:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=paastech
+      - POSTGRES_PASSWORD=paastech
+      - POSTGRES_DB=paastech
+    ports:
+      - "5432:5432"
+    volumes:
+      - "paastech:/var/lib/postgresql/data"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 125M
+    healthcheck:
+      test: /usr/local/bin/pg_isready -U paastech -d paastech
+      interval: 5s
+      timeout: 10s
+      retries: 4
+
+volumes:
+  paastech:
+  git_server:

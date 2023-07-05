@@ -1,0 +1,47 @@
+# This file is used to build the client image for testing purposes
+FROM debian:bullseye-slim
+
+# Install requiredments
+RUN apt-get update && apt-get install -y \
+    git \
+    ssh
+
+# Create the .ssh directory and add the adequate permissions
+RUN mkdir -p /root/.ssh && \
+    chmod 700 /root/.ssh
+
+# Copy the private and public keys
+COPY _scripts/output/client /root/.ssh/
+
+
+# Set the adequate permissions
+RUN chmod 600 /root/.ssh/id* && \
+    chmod 644 /root/.ssh/id*.pub
+
+# Configure git
+RUN git config --global user.email "root@paastech.cloud" && \
+    git config --global user.name "root"
+
+ARG REPOSITORY_NAME
+ENV REPOSITORY_NAME=${REPOSITORY_NAME}
+
+# Create sample repository
+RUN mkdir /root/${REPOSITORY_NAME} && \
+    git init /root/${REPOSITORY_NAME} && \
+    touch /root/.ssh/known_hosts
+
+# Copy the entrypoint script
+COPY _scripts/client-entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY _scripts/debug.sh /usr/local/bin/debug
+
+# Make the entrypoint script executable
+RUN chmod +x /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/debug
+
+ARG GIT_REMOTE_URL
+ENV GIT_REMOTE_URL=${GIT_REMOTE_URL}
+
+WORKDIR /root/${REPOSITORY_NAME}
+
+# Set the entrypoint
+ENTRYPOINT ["sh", "-c", "/usr/local/bin/entrypoint.sh"]
