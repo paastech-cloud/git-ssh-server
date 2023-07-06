@@ -1,0 +1,20 @@
+name: Push
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  golangci:
+    uses: paastech-cloud/.github/.github/workflows/golangci.yml@main
+
+  docker-build-push:
+    needs: golangci
+    uses: paastech-cloud/.github/.github/workflows/docker.yml@test-docker-ci
+    permissions:
+      packages: write
+    with:
+      dockerfile: _docker/Dockerfile.server
+      image_name: ${{ github.repository }}
+      context: .
