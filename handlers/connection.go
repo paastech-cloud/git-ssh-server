@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"io"
 	"os"
 	"os/exec"
 
@@ -29,7 +31,6 @@ func ReceivePackHandler(session ssh.Session) {
 
 	if err != nil {
 		logger.WarningLogger.Println(err)
-		_, _ = session.Stderr().Write([]byte("invalid command"))
 		return
 	}
 
@@ -39,30 +40,85 @@ func ReceivePackHandler(session ssh.Session) {
 
 	if err != nil {
 		logger.ErrorLogger.Println(err)
-		_, _ = session.Stderr().Write([]byte("unknown error"))
 		return
 	}
 
 	if !CanUserEditRepository {
 		logger.WarningLogger.Printf("user with public key %s unauthorized to access repository %s", fullSshKey, repoName)
-		_, _ = session.Stderr().Write([]byte("repository does not exist"))
 		return
+	} else {
+		logger.InfoLogger.Printf("user with public key %s authorized to access repository %s", fullSshKey, repoName)
 	}
 
 	fullRepoPath := os.Getenv("GIT_REPOSITORIES_FULL_BASE_PATH") + "/" + repoName
 
-	command := exec.Command("git-receive-pack", fullRepoPath)
+	ctx, cancel := context.WithCancel(session.Context())
 
-	// set the stdout of the command to our session
-	command.Stdout = session
-	command.Stdin = session
+	defer cancel()
 
-	logger.InfoLogger.Printf("running command: %s", command.String())
+	cmd := exec.CommandContext(ctx, "git-receive-pack", fullRepoPath)
 
-	// run the command
-	if err := command.Run(); err != nil {
+	// TODO use cmd.Env to set the environment variables
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
 		logger.ErrorLogger.Println(err)
-		_, _ = session.Stderr().Write([]byte(err.Error()))
 		return
+	}
+	defer stdout.Close()
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		logger.ErrorLogger.Println(err)
+		return
+	}
+	defer stderr.Close()
+
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		logger.ErrorLogger.Println(err)
+		return
+	}
+	defer stdin.Close()
+
+	if err := cmd.Start(); err != nil {
+		logger.ErrorLogger.Println(err)
+		return
+	}
+
+	go func() {
+		defer stdin.Close()
+		if _, err = io.Copy(stdin, session); err != nil {
+			logger.ErrorLogger.Println(err)
+			return
+		}
+	}()
+
+	go func() {
+		defer stdout.Close()
+		if _, err = io.Copy(session, stdout); err != nil {
+			logger.ErrorLogger.Println(err)
+			return
+		}
+	}()
+
+	go func() {
+		defer stderr.Close()
+		if _, err = io.Copy(session.Stderr(), stderr); err != nil {
+			logger.ErrorLogger.Println(err)
+			return
+		}
+	}()
+
+	err = cmd.Wait()
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); !ok {
+			logger.ErrorLogger.Println(err)
+		}
+	}
+
+	// TODO get the exit code of the command and send it to the user instead of exiting with 1
+	if err := session.Exit(0); err != nil {
+		logger.ErrorLogger.Println(err)
 	}
 }
