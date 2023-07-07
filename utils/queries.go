@@ -67,8 +67,6 @@ func IsUserAuthorized(key string) (bool, error) {
 // The user being authorized means that the ssh key is associated with a user
 // that has access to the repository
 func CanUserEditRepository(key string, repoName string) (bool, error) {
-	fmt.Println(key, repoName)
-
 	db, err := getConnection()
 
 	if err != nil {
