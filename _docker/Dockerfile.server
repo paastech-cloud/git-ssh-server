@@ -28,13 +28,6 @@ RUN apt purge -y -qq curl && \
     apt clean -y -qq && \
     rm -rf /var/lib/apt/lists/*
 
-RUN addgroup --system git && adduser --system --ingroup git git
-
-# git user to root group
-RUN usermod -a -G root git
-
-USER git
-
-COPY --from=builder --chown=git:git /app/git-ssh-server .
+COPY --from=builder /app/git-ssh-server .
 
 CMD ["./git-ssh-server"]

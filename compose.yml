@@ -16,11 +16,10 @@ services:
       dockerfile: _docker/Dockerfile.server
     volumes:
       - ./_srv:/srv
-      - git_server:/tmp
+      - ./_scripts/output/server:/etc/ssh/keys
       - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      postgresql:
-        condition: service_healthy
+    ports:
+      - "2222:2222"
     environment:
       - GIT_REPOSITORIES_FULL_BASE_PATH=/srv
       - GIT_POSTGRESQL_USERNAME=paastech
@@ -28,6 +27,10 @@ services:
       - GIT_POSTGRESQL_DATABASE_NAME=paastech
       - GIT_POSTGRESQL_PORT=5432
       - GIT_POSTGRESQL_HOST=postgresql
+      - GIT_HOST_SIGNER_PATH=/etc/ssh/keys/id_ed25519
+    depends_on:
+      postgresql:
+        condition: service_healthy
     deploy:
       resources:
         limits:
