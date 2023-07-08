@@ -7,10 +7,7 @@ require github.com/gliderlabs/ssh v0.3.5
 require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/rs/zerolog v1.29.1 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.24.0 // indirect
+	github.com/rs/zerolog v1.29.1
 )
 
 require (
