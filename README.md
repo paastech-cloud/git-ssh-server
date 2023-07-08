@@ -40,6 +40,7 @@ The server is configured using environment variables.
 | GIT_POSTGRESQL_PORT | The port to use to connect to the postgresql database. |
 | GIT_POSTGRESQL_HOST | The host to use to connect to the postgresql database. |
 | GIT_HOST_SIGNER_PATH | The path to the host key. |
+| GIT_LOG_LEVEL | The log level to use. Possible values include : debug, warn, error, fatal, panic |
 
 ## Docker
 
@@ -51,11 +52,17 @@ The server requires a few volumes to be mounted in the container. The following 
 - A volume containing the git repositories
 - A volume to the docker socket to be able to build the repositories via pack and docker
 
+### Usage
+
 You can use the provided [compose file](compose.yml) to run the server in a docker container.
 
 It bootstraps a postgresql database, this application and a debian container with git installed and a sample nodejs project.
 
 ```bash
+git clone git@github.com:paastech-cloud/git-ssh-server.git
+
+cd git-ssh-server
+
 # Prepare the environment
 # This script creates a pair of ssh keys
 ./_scripts/init-dev-env.sh
@@ -64,7 +71,7 @@ It bootstraps a postgresql database, this application and a debian container wit
 docker compose up -d
 
 # Populate the database
-cd /path/to/projects
+cd ..
 
 git clone git@github.com:paastech-cloud/api.git
 
@@ -79,6 +86,8 @@ npx prisma db push
 npx prisma db seed
 
 # Back into the root directory of this project
+cd ../git-ssh-server
+
 # Exec into the client container
 docker compose exec client bash
 
