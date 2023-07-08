@@ -11,6 +11,75 @@ import (
 	"github.com/paastech-cloud/git-ssh-server/utils"
 )
 
+func receivePack(session ssh.Session, repoName string) error {
+	ctx, cancel := context.WithCancel(session.Context())
+	defer cancel()
+
+	fullRepoPath := os.Getenv("GIT_REPOSITORIES_FULL_BASE_PATH") + "/" + repoName
+	cmd := exec.CommandContext(ctx, "git-receive-pack", fullRepoPath)
+
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		logger.ErrorLogger.Println(err)
+		return err
+	}
+	defer stdout.Close()
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		logger.ErrorLogger.Println(err)
+		return err
+	}
+	defer stderr.Close()
+
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		logger.ErrorLogger.Println(err)
+		return err
+	}
+	defer stdin.Close()
+
+	if err := cmd.Start(); err != nil {
+		logger.ErrorLogger.Println(err)
+		return err
+	}
+
+	go func() {
+		defer stdin.Close()
+		if _, err = io.Copy(stdin, session); err != nil {
+			logger.ErrorLogger.Println(err)
+			return
+		}
+	}()
+
+	go func() {
+		defer stdout.Close()
+		if _, err = io.Copy(session, stdout); err != nil {
+			logger.ErrorLogger.Println(err)
+			return
+		}
+	}()
+
+	go func() {
+		defer stderr.Close()
+		if _, err = io.Copy(session.Stderr(), stderr); err != nil {
+			logger.ErrorLogger.Println(err)
+			return
+		}
+	}()
+
+	err = cmd.Wait()
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); !ok {
+			logger.ErrorLogger.Println(err)
+		}
+		return err
+	}
+
+	return nil
+}
+
 // This handler is once the user has authenticated
 // It will run git-receive-pack only
 //
@@ -50,71 +119,12 @@ func ReceivePackHandler(session ssh.Session) {
 		logger.InfoLogger.Printf("user with public key %s authorized to access repository %s", fullSshKey, repoName)
 	}
 
-	fullRepoPath := os.Getenv("GIT_REPOSITORIES_FULL_BASE_PATH") + "/" + repoName
+	err = receivePack(session, repoName)
 
-	ctx, cancel := context.WithCancel(session.Context())
-
-	defer cancel()
-
-	cmd := exec.CommandContext(ctx, "git-receive-pack", fullRepoPath)
-
-	// TODO use cmd.Env to set the environment variables
-
-	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		logger.ErrorLogger.Println(err)
+		session.Exit(1)
 		return
-	}
-	defer stdout.Close()
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		logger.ErrorLogger.Println(err)
-		return
-	}
-	defer stderr.Close()
-
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		logger.ErrorLogger.Println(err)
-		return
-	}
-	defer stdin.Close()
-
-	if err := cmd.Start(); err != nil {
-		logger.ErrorLogger.Println(err)
-		return
-	}
-
-	go func() {
-		defer stdin.Close()
-		if _, err = io.Copy(stdin, session); err != nil {
-			logger.ErrorLogger.Println(err)
-			return
-		}
-	}()
-
-	go func() {
-		defer stdout.Close()
-		if _, err = io.Copy(session, stdout); err != nil {
-			logger.ErrorLogger.Println(err)
-			return
-		}
-	}()
-
-	go func() {
-		defer stderr.Close()
-		if _, err = io.Copy(session.Stderr(), stderr); err != nil {
-			logger.ErrorLogger.Println(err)
-			return
-		}
-	}()
-
-	err = cmd.Wait()
-	if err != nil {
-		if _, ok := err.(*exec.ExitError); !ok {
-			logger.ErrorLogger.Println(err)
-		}
 	}
 
 	// TODO get the exit code of the command and send it to the user instead of exiting with 1
