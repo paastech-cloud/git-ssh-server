@@ -18,6 +18,10 @@ func receivePack(session ssh.Session, repoName string) error {
 	fullRepoPath := os.Getenv("GIT_REPOSITORIES_FULL_BASE_PATH") + "/" + repoName
 	cmd := exec.CommandContext(ctx, "git-receive-pack", fullRepoPath)
 
+	// Set the environment variable IMAGE_NAME to the repository name
+	cmd.Env = append(os.Environ(),
+		"IMAGE_NAME="+repoName,
+	)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
