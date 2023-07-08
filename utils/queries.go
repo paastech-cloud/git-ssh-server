@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/paastech-cloud/git-ssh-server/config"
 )
@@ -13,11 +12,11 @@ import (
 func getConnection() (*sql.DB, error) {
 	dbUrl := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv(config.GIT_POSTGRESQL_USERNAME_KEY),
-		os.Getenv(config.GIT_POSTGRESQL_PASSWORD_KEY),
-		os.Getenv(config.GIT_POSTGRESQL_HOST_KEY),
-		os.Getenv(config.GIT_POSTGRESQL_PORT_KEY),
-		os.Getenv(config.GIT_POSTGRESQL_DATABASE_NAME_KEY),
+		config.PostgreSQLUsername,
+		config.PostgreSQLPassword,
+		config.PostgreSQLHost,
+		config.PostgreSQLPort,
+		config.PostgreSQLDatabase,
 	)
 
 	db, err := sql.Open("postgres", dbUrl)

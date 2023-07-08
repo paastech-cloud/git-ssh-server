@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/gliderlabs/ssh"
+	"github.com/paastech-cloud/git-ssh-server/config"
 	"github.com/paastech-cloud/git-ssh-server/logger"
 	"github.com/paastech-cloud/git-ssh-server/utils"
 )
@@ -15,7 +16,7 @@ func receivePack(session ssh.Session, repoName string) error {
 	ctx, cancel := context.WithCancel(session.Context())
 	defer cancel()
 
-	fullRepoPath := os.Getenv("GIT_REPOSITORIES_FULL_BASE_PATH") + "/" + repoName
+	fullRepoPath := config.RepositoriesBasePath + "/" + repoName
 	cmd := exec.CommandContext(ctx, "git-receive-pack", fullRepoPath)
 
 	// Set the environment variable IMAGE_NAME to the repository name
