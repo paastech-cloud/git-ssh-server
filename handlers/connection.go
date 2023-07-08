@@ -127,7 +127,7 @@ func ReceivePackHandler(session ssh.Session) {
 
 	if err != nil {
 		logger.ErrorLogger.Println(err)
-		session.Exit(1)
+		_ = session.Exit(1)
 		return
 	}
 
