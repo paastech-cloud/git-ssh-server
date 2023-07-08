@@ -3,17 +3,19 @@ name: Push
 on:
   push:
     branches: [ main ]
+    paths:
+      - '*/**.go'
+      - _docker/Dockerfile.server
+      - .github/workflows/**
   workflow_dispatch:
 
 jobs:
   golangci:
-    uses: paastech-cloud/.github/.github/workflows/golangci.yml@main
+    uses: paastech-cloud/.github/.github/workflows/golangci.yml@v2.1
 
   docker-build-push:
     needs: golangci
-    uses: paastech-cloud/.github/.github/workflows/docker.yml@test-docker-ci
-    permissions:
-      packages: write
+    uses: paastech-cloud/.github/.github/workflows/docker.yml@v2.1
     with:
       dockerfile: _docker/Dockerfile.server
       image_name: ${{ github.repository }}
