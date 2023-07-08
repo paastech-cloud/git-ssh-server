@@ -7,6 +7,7 @@ import (
 
 const (
 	GIT_REPOSITORIES_FULL_BASE_PATH_KEY = "GIT_REPOSITORIES_FULL_BASE_PATH"
+	GIT_HOST_SIGNER_PATH_KEY            = "GIT_HOST_SIGNER_PATH"
 	GIT_POSTGRESQL_USERNAME_KEY         = "GIT_POSTGRESQL_USERNAME"
 	GIT_POSTGRESQL_PASSWORD_KEY         = "GIT_POSTGRESQL_PASSWORD"
 	GIT_POSTGRESQL_DATABASE_NAME_KEY    = "GIT_POSTGRESQL_DATABASE_NAME"
@@ -16,6 +17,7 @@ const (
 
 var (
 	RepositoriesBasePath string
+	PathToHostSigner     string
 	PostgreSQLUsername   string
 	PostgreSQLPassword   string
 	PostgreSQLDatabase   string
@@ -28,6 +30,7 @@ func CheckConfig() error {
 	// make an array of all required environment variables
 	requiredEnvVars := []string{
 		GIT_REPOSITORIES_FULL_BASE_PATH_KEY,
+		GIT_HOST_SIGNER_PATH_KEY,
 		GIT_POSTGRESQL_USERNAME_KEY,
 		GIT_POSTGRESQL_PASSWORD_KEY,
 		GIT_POSTGRESQL_DATABASE_NAME_KEY,
@@ -54,6 +57,7 @@ func CheckConfig() error {
 
 	// set the global variables
 	RepositoriesBasePath = os.Getenv(GIT_REPOSITORIES_FULL_BASE_PATH_KEY)
+	PathToHostSigner = os.Getenv(GIT_HOST_SIGNER_PATH_KEY)
 	PostgreSQLUsername = os.Getenv(GIT_POSTGRESQL_USERNAME_KEY)
 	PostgreSQLPassword = os.Getenv(GIT_POSTGRESQL_PASSWORD_KEY)
 	PostgreSQLDatabase = os.Getenv(GIT_POSTGRESQL_DATABASE_NAME_KEY)

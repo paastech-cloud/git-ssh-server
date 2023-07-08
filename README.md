@@ -39,8 +39,17 @@ The server is configured using environment variables.
 | GIT_POSTGRESQL_DATABASE_NAME | The name of the postgresql database. |
 | GIT_POSTGRESQL_PORT | The port to use to connect to the postgresql database. |
 | GIT_POSTGRESQL_HOST | The host to use to connect to the postgresql database. |
+| GIT_HOST_SIGNER_PATH | The path to the host key. |
 
 ## Docker
+
+### Configuration
+
+The server requires a few volumes to be mounted in the container. The following volumes are required:
+
+- A volume containing the host key
+- A volume containing the git repositories
+- A volume to the docker socket to be able to build the repositories via pack and docker
 
 You can use the provided [compose file](compose.yml) to run the server in a docker container.
 

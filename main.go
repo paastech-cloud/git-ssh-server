@@ -30,11 +30,20 @@ func main() {
 		log.Fatal().Err(err)
 	}
 
+	// check if path to host signer exists
+	if _, err := os.Stat(config.PathToHostSigner); err != nil {
+		log.Fatal().Err(err).Msg("host signer file does not exist")
+	}
+
+	hostSigner := ssh.HostKeyFile(config.PathToHostSigner)
+
 	s := &ssh.Server{
 		Addr:             ":2222",
 		Handler:          handlers.ReceivePackHandler,
 		PublicKeyHandler: handlers.AuthenticateUser,
 	}
+
+	s.SetOption(hostSigner)
 
 	log.Info().Msg("server listening on port 2222")
 
