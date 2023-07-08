@@ -43,7 +43,11 @@ func main() {
 		PublicKeyHandler: handlers.AuthenticateUser,
 	}
 
-	s.SetOption(hostSigner)
+	err = s.SetOption(hostSigner)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error setting host signer")
+	}
 
 	log.Info().Msg("server listening on port 2222")
 
