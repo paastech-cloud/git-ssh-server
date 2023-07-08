@@ -14,11 +14,24 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o git-ssh-server
 # Stage 2: Create a minimal image to run the Go binary
 FROM debian:bookworm-slim
 
-RUN apt update && apt install -y -qq git
-
 WORKDIR /app
 
+RUN apt update && \
+    apt install -y -qq \
+    git \
+    curl
+
+RUN (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.29.0/pack-v0.29.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+
+RUN apt purge -y -qq curl && \
+    apt autoremove -y -qq && \
+    apt clean -y -qq && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN addgroup --system git && adduser --system --ingroup git git
+
+# git user to root group
+RUN usermod -a -G root git
 
 USER git
 

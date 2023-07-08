@@ -1,3 +1,14 @@
+###############################################
+#                                             #
+#  Git Ssh Server - PaaSTech Cloud            #
+#                                             #
+#  This compose file is purely made for       #
+#  development purposes.                      #
+#                                             #
+#  Do not use this in production.             #
+#                                             #
+###############################################
+
 services:
   server:
     build:
@@ -6,6 +17,7 @@ services:
     volumes:
       - ./_srv:/srv
       - git_server:/tmp
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       postgresql:
         condition: service_healthy
