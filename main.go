@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/gliderlabs/ssh"
@@ -9,6 +8,8 @@ import (
 	"github.com/paastech-cloud/git-ssh-server/config"
 	"github.com/paastech-cloud/git-ssh-server/handlers"
 	"github.com/paastech-cloud/git-ssh-server/logger"
+
+	"github.com/rs/zerolog/log"
 )
 
 /**
@@ -17,16 +18,16 @@ import (
 func main() {
 	err := godotenv.Load()
 
-	if err != nil && os.Getenv("ENV") == "development" {
-		log.Fatal("Error loading .env file")
-	}
+	logger.Setup()
 
-	logger.Init()
+	if err != nil && os.Getenv("ENV") == "development" {
+		log.Fatal().Err(err).Msg("error loading .env file")
+	}
 
 	err = config.CheckConfig()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	s := &ssh.Server{
@@ -35,7 +36,7 @@ func main() {
 		PublicKeyHandler: handlers.AuthenticateUser,
 	}
 
-	logger.InfoLogger.Println("starting ssh server on port 2222...")
+	log.Info().Msg("server listening on port 2222")
 
-	log.Fatal(s.ListenAndServe())
+	log.Fatal().Err(s.ListenAndServe())
 }

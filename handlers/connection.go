@@ -8,8 +8,8 @@ import (
 
 	"github.com/gliderlabs/ssh"
 	"github.com/paastech-cloud/git-ssh-server/config"
-	"github.com/paastech-cloud/git-ssh-server/logger"
 	"github.com/paastech-cloud/git-ssh-server/utils"
+	"github.com/rs/zerolog/log"
 )
 
 func receivePack(session ssh.Session, repoName string) error {
@@ -26,34 +26,34 @@ func receivePack(session ssh.Session, repoName string) error {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		logger.ErrorLogger.Println(err)
+		log.Error().Err(err)
 		return err
 	}
 	defer stdout.Close()
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		logger.ErrorLogger.Println(err)
+		log.Error().Err(err)
 		return err
 	}
 	defer stderr.Close()
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		logger.ErrorLogger.Println(err)
+		log.Error().Err(err)
 		return err
 	}
 	defer stdin.Close()
 
 	if err := cmd.Start(); err != nil {
-		logger.ErrorLogger.Println(err)
+		log.Error().Err(err)
 		return err
 	}
 
 	go func() {
 		defer stdin.Close()
 		if _, err = io.Copy(stdin, session); err != nil {
-			logger.ErrorLogger.Println(err)
+			log.Error().Err(err)
 			return
 		}
 	}()
@@ -61,7 +61,7 @@ func receivePack(session ssh.Session, repoName string) error {
 	go func() {
 		defer stdout.Close()
 		if _, err = io.Copy(session, stdout); err != nil {
-			logger.ErrorLogger.Println(err)
+			log.Error().Err(err)
 			return
 		}
 	}()
@@ -69,7 +69,7 @@ func receivePack(session ssh.Session, repoName string) error {
 	go func() {
 		defer stderr.Close()
 		if _, err = io.Copy(session.Stderr(), stderr); err != nil {
-			logger.ErrorLogger.Println(err)
+			log.Error().Err(err)
 			return
 		}
 	}()
@@ -77,7 +77,7 @@ func receivePack(session ssh.Session, repoName string) error {
 	err = cmd.Wait()
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); !ok {
-			logger.ErrorLogger.Println(err)
+			log.Error().Err(err)
 		}
 		return err
 	}
@@ -104,7 +104,7 @@ func ReceivePackHandler(session ssh.Session) {
 	repoName, err := utils.GetRepoName(userCommand)
 
 	if err != nil {
-		logger.WarningLogger.Println(err)
+		log.Debug().Err(err).Msgf("user command %s is not formatted correctly", userCommand)
 		return
 	}
 
@@ -113,27 +113,27 @@ func ReceivePackHandler(session ssh.Session) {
 	CanUserEditRepository, err := utils.CanUserEditRepository(fullSshKey, repoName)
 
 	if err != nil {
-		logger.ErrorLogger.Println(err)
+		log.Error().Err(err)
 		return
 	}
 
 	if !CanUserEditRepository {
-		logger.WarningLogger.Printf("user with public key %s unauthorized to access repository %s", fullSshKey, repoName)
+		log.Info().Msgf("user with public key %s unauthorized to access repository %s", fullSshKey, repoName)
 		return
 	} else {
-		logger.InfoLogger.Printf("user with public key %s authorized to access repository %s", fullSshKey, repoName)
+		log.Info().Msgf("user with public key %s authorized to access repository %s", fullSshKey, repoName)
 	}
 
 	err = receivePack(session, repoName)
 
 	if err != nil {
-		logger.ErrorLogger.Println(err)
+		log.Error().Err(err)
 		_ = session.Exit(1)
 		return
 	}
 
 	// TODO get the exit code of the command and send it to the user instead of exiting with 1
 	if err := session.Exit(0); err != nil {
-		logger.ErrorLogger.Println(err)
+		log.Error().Err(err)
 	}
 }

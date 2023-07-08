@@ -1,18 +1,31 @@
 package logger
 
 import (
-	"log"
 	"os"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
-var (
-	WarningLogger *log.Logger
-	InfoLogger    *log.Logger
-	ErrorLogger   *log.Logger
-)
+func Setup() {
+	logLevel := os.Getenv("GIT_LOG_LEVEL")
 
-func Init() {
-	WarningLogger = log.New(os.Stdout, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	InfoLogger = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	var chosenLogLevel zerolog.Level
+
+	switch logLevel {
+	case "debug":
+		chosenLogLevel = zerolog.DebugLevel
+	case "warn":
+		chosenLogLevel = zerolog.WarnLevel
+	case "error":
+		chosenLogLevel = zerolog.ErrorLevel
+	case "fatal":
+		chosenLogLevel = zerolog.FatalLevel
+	case "panic":
+		chosenLogLevel = zerolog.PanicLevel
+	default:
+		chosenLogLevel = zerolog.InfoLevel
+	}
+
+	log.Info().Msg("logger setup with level " + chosenLogLevel.String())
 }
