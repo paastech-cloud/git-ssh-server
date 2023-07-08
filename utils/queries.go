@@ -51,8 +51,6 @@ func IsUserAuthorized(key string) (bool, error) {
 		return false, err
 	}
 
-	fmt.Println(count)
-
 	if count == 0 {
 		return false, nil
 	}
