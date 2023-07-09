@@ -28,6 +28,7 @@ services:
       - GIT_POSTGRESQL_PORT=5432
       - GIT_POSTGRESQL_HOST=postgresql
       - GIT_HOST_SIGNER_PATH=/etc/ssh/keys/id_ed25519
+      - GIT_LOG_LEVEL=trace
     depends_on:
       postgresql:
         condition: service_healthy
