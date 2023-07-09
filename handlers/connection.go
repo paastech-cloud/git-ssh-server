@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"io"
-	"os"
 	"os/exec"
 
 	"github.com/gliderlabs/ssh"
@@ -18,11 +17,6 @@ func receivePack(session ssh.Session, repoName string) error {
 
 	fullRepoPath := config.RepositoriesBasePath + "/" + repoName
 	cmd := exec.CommandContext(ctx, "git-receive-pack", fullRepoPath)
-
-	// Set the environment variable IMAGE_NAME to the repository name
-	cmd.Env = append(os.Environ(),
-		"IMAGE_NAME="+repoName,
-	)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
