@@ -20,7 +20,7 @@ RUN apt update && \
     apt install -y -qq \
     git \
     curl \
-    jq
+    yq
 
 RUN (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.29.0/pack-v0.29.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
 
