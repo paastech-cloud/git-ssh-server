@@ -42,8 +42,8 @@ func IsUserAuthorized(key string) (bool, error) {
 	var count int
 
 	err = db.QueryRow(
-		"SELECT COUNT(*) FROM ssh_keys WHERE value = $1",
-		key,
+		"SELECT COUNT(*) FROM ssh_keys WHERE value LIKE $1",
+		key+" %",
 	).Scan(&count)
 
 	if err != nil {
