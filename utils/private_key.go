@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"os"
 	"path"
 
@@ -30,7 +29,7 @@ func GenerateKeyPair(filepath string) error {
 	// Generate a new RSA key pair
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return fmt.Errorf("Error while generating private key: " + err.Error())
+		return err
 	}
 
 	// Convert private key with PEM format
@@ -42,14 +41,14 @@ func GenerateKeyPair(filepath string) error {
 	// Create a file for the private key
 	privateKeyFile, err := os.Create(filepath)
 	if err != nil {
-		return fmt.Errorf("Error while creating private key file: " + err.Error())
+		return err
 	}
 	defer privateKeyFile.Close()
 
 	// Writing private key to file with PEM format
 	err = pem.Encode(privateKeyFile, privateKeyPEM)
 	if err != nil {
-		return fmt.Errorf("Error while writting private key file: " + err.Error())
+		return err
 	}
 
 	log.Info().Msg("Private key successfully generated at: " + filepath)
@@ -65,14 +64,14 @@ func GenerateKeyPair(filepath string) error {
 	// Create a file for the public key
 	publicKeyFile, err := os.Create(publicKeyPath)
 	if err != nil {
-		return fmt.Errorf("Error while creating public key file: " + err.Error())
+		return err
 	}
 	defer publicKeyFile.Close()
 
 	// Writting public key to file with PEM format
 	err = pem.Encode(publicKeyFile, publicKeyPEM)
 	if err != nil {
-		return fmt.Errorf("Error while writting public key file: " + err.Error())
+		return err
 	}
 
 	log.Info().Msg("Public key successfully generated at: " + publicKeyPath)
@@ -98,8 +97,5 @@ func MkParentdir(filepath string) error {
 		return nil
 	}
 	err := os.MkdirAll(parentdir, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("Error while making key directory: " + err.Error())
-	}
-	return nil
+	return err
 }
