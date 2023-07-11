@@ -13,6 +13,11 @@ import (
 )
 
 /**
+ * TODO: Generate ssh key at start on the host volume,
+ * if it is already there, just use it.
+ *
+ * Use env vars loaded in config to determine the path
+ *
  * @description: SSH server with authorization via public key.
  */
 func main() {
@@ -35,6 +40,7 @@ func main() {
 		log.Fatal().Err(err).Msg("host signer file does not exist")
 	}
 
+	// read host file from host
 	hostSigner := ssh.HostKeyFile(config.PathToHostSigner)
 
 	s := &ssh.Server{
@@ -43,6 +49,7 @@ func main() {
 		PublicKeyHandler: handlers.AuthenticateUser,
 	}
 
+	// add host key to server
 	err = s.SetOption(hostSigner)
 
 	if err != nil {
