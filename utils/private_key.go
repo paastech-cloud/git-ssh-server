@@ -19,11 +19,7 @@ import (
 *   - example/key
 *   - example/key.pub
  */
-<<<<<<< HEAD
 func GenerateKeyPair(filepath string) {
-=======
-func GenerateHostKey(filepath string) {
->>>>>>> 5ad0b53 (feat: ssh key pair generation on init)
 	// Creating parent directory if it doesn't exists
 	MkParentdir(filepath)
 

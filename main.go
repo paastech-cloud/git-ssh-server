@@ -39,11 +39,7 @@ func main() {
 	// check if path to host signer exists
 	if _, err := os.Stat(config.PathToHostSigner); err != nil {
 		log.Warn().Err(err).Msg("host signer file does not exist, generating a key pair..")
-<<<<<<< HEAD
 		utils.GenerateKeyPair(config.PathToHostSigner)
-=======
-		utils.GenerateHostKey(".ssh/keys/id_ed5552")
->>>>>>> 5ad0b53 (feat: ssh key pair generation on init)
 	}
 
 	// read host file from host
