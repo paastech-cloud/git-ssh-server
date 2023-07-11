@@ -38,8 +38,11 @@ func main() {
 
 	// check if path to host signer exists
 	if _, err := os.Stat(config.PathToHostSigner); err != nil {
-		log.Warn().Err(err).Msg("host signer file does not exist, generating a key pair..")
-		utils.GenerateKeyPair(config.PathToHostSigner)
+		log.Info().Err(err).Msg("host signer file does not exist, generating a key pair..")
+		keyErr := utils.GenerateKeyPair(config.PathToHostSigner)
+		if keyErr != nil {
+			log.Fatal().Err(keyErr).Msg("Error while generating RSA Key Pair")
+		}
 	}
 
 	// read host file from host
