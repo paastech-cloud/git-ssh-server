@@ -14,11 +14,6 @@ import (
 )
 
 /**
- * TODO: Generate ssh key at start on the host volume,
- * if it is already there, just use it.
- *
- * Use env vars loaded in config to determine the path
- *
  * @description: SSH server with authorization via public key.
  */
 func main() {
