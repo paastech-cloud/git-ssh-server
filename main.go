@@ -8,6 +8,7 @@ import (
 	"github.com/paastech-cloud/git-ssh-server/config"
 	"github.com/paastech-cloud/git-ssh-server/handlers"
 	"github.com/paastech-cloud/git-ssh-server/logger"
+	"github.com/paastech-cloud/git-ssh-server/utils"
 
 	"github.com/rs/zerolog/log"
 )
@@ -37,7 +38,12 @@ func main() {
 
 	// check if path to host signer exists
 	if _, err := os.Stat(config.PathToHostSigner); err != nil {
-		log.Fatal().Err(err).Msg("host signer file does not exist")
+		log.Warn().Err(err).Msg("host signer file does not exist, generating a key pair..")
+<<<<<<< HEAD
+		utils.GenerateKeyPair(config.PathToHostSigner)
+=======
+		utils.GenerateHostKey(".ssh/keys/id_ed5552")
+>>>>>>> 5ad0b53 (feat: ssh key pair generation on init)
 	}
 
 	// read host file from host
