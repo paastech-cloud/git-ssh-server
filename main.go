@@ -8,11 +8,17 @@ import (
 	"github.com/paastech-cloud/git-ssh-server/config"
 	"github.com/paastech-cloud/git-ssh-server/handlers"
 	"github.com/paastech-cloud/git-ssh-server/logger"
+	"github.com/paastech-cloud/git-ssh-server/utils"
 
 	"github.com/rs/zerolog/log"
 )
 
 /**
+ * TODO: Generate ssh key at start on the host volume,
+ * if it is already there, just use it.
+ *
+ * Use env vars loaded in config to determine the path
+ *
  * @description: SSH server with authorization via public key.
  */
 func main() {
@@ -32,9 +38,14 @@ func main() {
 
 	// check if path to host signer exists
 	if _, err := os.Stat(config.PathToHostSigner); err != nil {
-		log.Fatal().Err(err).Msg("host signer file does not exist")
+		log.Info().Err(err).Msg("host signer file does not exist, generating a key pair..")
+		err = utils.GenerateKeyPair(config.PathToHostSigner)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error while generating RSA Key Pair")
+		}
 	}
 
+	// read host file from host
 	hostSigner := ssh.HostKeyFile(config.PathToHostSigner)
 
 	s := &ssh.Server{
@@ -43,6 +54,7 @@ func main() {
 		PublicKeyHandler: handlers.AuthenticateUser,
 	}
 
+	// add host key to server
 	err = s.SetOption(hostSigner)
 
 	if err != nil {
