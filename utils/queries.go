@@ -67,17 +67,15 @@ func CanUserEditRepository(key string, repoName string) (bool, error) {
 	db, err := getConnection()
 
 	if err != nil {
-		log.Println(err)
 		return false, err
 	}
 
 	defer db.Close()
 
 	var count int
-
 	err = db.QueryRow(
-		"SELECT COUNT(*) FROM ssh_keys WHERE value = $1 AND user_id IN (SELECT id FROM users WHERE user_id IN (SELECT user_id FROM projects WHERE id = $2))",
-		key,
+		"SELECT COUNT(*) FROM ssh_keys WHERE value LIKE $1 AND user_id IN (SELECT id FROM users WHERE user_id IN (SELECT user_id FROM projects WHERE id = $2))",
+		key+" %",
 		repoName,
 	).Scan(&count)
 
@@ -85,9 +83,5 @@ func CanUserEditRepository(key string, repoName string) (bool, error) {
 		return false, err
 	}
 
-	if count == 0 {
-		return false, nil
-	}
-
-	return true, nil
+	return count > 0, nil
 }
