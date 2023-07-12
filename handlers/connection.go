@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"io"
+	"os"
 	"os/exec"
 
 	"github.com/gliderlabs/ssh"
@@ -104,18 +105,24 @@ func ReceivePackHandler(session ssh.Session) {
 
 	fullSshKey := utils.ParsePublicKey(session.PublicKey())
 
-	CanUserEditRepository, err := utils.CanUserEditRepository(fullSshKey, repoName)
+	canUserEditRepository, err := utils.CanUserEditRepository(fullSshKey, repoName)
 
 	if err != nil {
 		log.Error().Err(err)
 		return
 	}
 
-	if !CanUserEditRepository {
-		log.Info().Msgf("user with public key %s unauthorized to access repository %s", fullSshKey, repoName)
+	if !canUserEditRepository {
+		log.Info().Msgf("user with public key %s forbidden to access repository %s", fullSshKey, repoName)
+		return
+	}
+
+	var stat os.FileInfo
+	if stat, err = os.Stat(config.RepositoriesBasePath + "/" + repoName); err != nil || !stat.IsDir() {
+		log.Debug().Msgf("repository %s does not exist", repoName)
 		return
 	} else {
-		log.Info().Msgf("user with public key %s authorized to access repository %s", fullSshKey, repoName)
+		log.Debug().Msgf("repository %s exists, executing git-receive-pack", repoName)
 	}
 
 	err = receivePack(session, repoName)
